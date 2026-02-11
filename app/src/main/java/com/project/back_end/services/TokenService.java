@@ -35,7 +35,12 @@ public class TokenService {
 
     public String extractIdentifier(String token) {
         try {
-            return "TODO";
+            return Jwts.parser()
+                .verifyWith((javax.crypto.SecretKey) getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
         } catch (Exception e) {
             throw new RuntimeException("Invalid JWT token", e);
         }

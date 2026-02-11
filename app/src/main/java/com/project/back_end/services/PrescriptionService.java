@@ -68,7 +68,8 @@ public class PrescriptionService {
                 return ResponseEntity.notFound().build();
             }
 
-            // TODO
+            response.put("prescriptions", prescriptions);
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
