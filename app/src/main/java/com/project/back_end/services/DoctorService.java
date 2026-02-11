@@ -1,8 +1,9 @@
 package com.project.back_end.services;
 
-import com.project.back_end.model.Doctor;
+import com.project.back_end.models.Doctor;
 import com.project.back_end.repo.AppointmentRepository;
 import com.project.back_end.repo.DoctorRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,14 +109,10 @@ public class DoctorService {
     }
 
     @Transactional
-    public List<String> getDoctorAvailability(
-        Long doctorId,
-        LocalDateTime date
-    ) {
-        LocalDateTime startOfDay = date.with(LocalDateTime.MIN.toLocalDate());
-        LocalDateTime endOfDay = date.with(LocalDateTime.MAX.toLocalDate());
-
-        List<com.project.back_end.model.Appointment> appointments =
+    public List<String> getDoctorAvailability(Long doctorId, LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+        List<com.project.back_end.models.Appointment> appointments =
             appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(
                 doctorId,
                 startOfDay,
@@ -133,7 +130,7 @@ public class DoctorService {
         }
 
         List<String> bookedTimes = new ArrayList<>();
-        for (com.project.back_end.model.Appointment appointment : appointments) {
+        for (com.project.back_end.models.Appointment appointment : appointments) {
             bookedTimes.add(
                 appointment.getAppointmentTime().toLocalTime().toString()
             );
@@ -189,7 +186,7 @@ public class DoctorService {
                 LocalDateTime.MAX.toLocalDate()
             );
 
-            List<com.project.back_end.model.Appointment> appointments =
+            List<com.project.back_end.models.Appointment> appointments =
                 appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(
                     id,
                     startOfDay,
@@ -209,7 +206,7 @@ public class DoctorService {
         try {
             Doctor doctor = doctorRepository.findByEmail(email);
             if (doctor != null && doctor.getPassword().equals(password)) {
-                return tokenService.generateToken(email, "doctor");
+                return tokenService.generateToken(email);
             } else {
                 return "Invalid email or password";
             }
@@ -230,5 +227,9 @@ public class DoctorService {
                 specialty
             );
         return filterDoctorByTime(doctors, time);
+    }
+
+    public boolean existsById(Long id) {
+        return doctorRepository.existsById(id);
     }
 }

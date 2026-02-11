@@ -1,7 +1,7 @@
 package com.project.back_end.controllers;
 
-import com.project.back_end.dtos.Login;
-import com.project.back_end.dtos.Patient;
+import com.project.back_end.DTO.Login;
+import com.project.back_end.models.Patient;
 import com.project.back_end.services.PatientService;
 import com.project.back_end.services.Service;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class PatientController {
     private Service sharedService;
 
     @GetMapping("/get/{token}")
-    public ResponseEntity<Map<String, Object>> getPatient(
+    public ResponseEntity<Map<String, Object>> getPatientDetails(
         @PathVariable String token
     ) {
         if (!sharedService.validateToken("patient", token)) {
@@ -28,7 +28,7 @@ public class PatientController {
         }
 
         return ResponseEntity.ok(
-            Map.of("patient", patientService.getPatientByToken(token))
+            Map.of("patient", sharedService.validateToken(token, "patient"))
         );
     }
 
@@ -36,10 +36,6 @@ public class PatientController {
     public ResponseEntity<Map<String, Object>> createPatient(
         @RequestBody Patient patient
     ) {
-        if (sharedService.patientExists(patient.getEmail())) {
-            return ResponseEntity.status(409).build();
-        }
-
         try {
             patientService.createPatient(patient);
             return ResponseEntity.ok(
@@ -51,8 +47,11 @@ public class PatientController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Login login) {
-        Map<String, Object> result = sharedService.validatePatientLogin(login);
+    public ResponseEntity<String> login(@RequestBody Login login) {
+        String result = sharedService.validatePatientLogin(
+            login.getIdentifier(),
+            login.getPassword()
+        );
         return ResponseEntity.ok(result);
     }
 
@@ -67,7 +66,7 @@ public class PatientController {
         }
 
         try {
-            Object appointments = patientService.getPatientAppointments(
+            Object appointments = patientService.getPatientAppointment(
                 patientId
             );
             return ResponseEntity.ok(Map.of("appointments", appointments));
@@ -87,8 +86,13 @@ public class PatientController {
         }
 
         try {
+            Patient patient = patientService.getPatientDetails(token);
             Object filteredAppointments =
-                sharedService.filterPatientAppointments(condition, name, token);
+                patientService.filterByDoctorAndCondition(
+                    patient.getId(),
+                    name,
+                    condition
+                );
             return ResponseEntity.ok(
                 Map.of("appointments", filteredAppointments)
             );

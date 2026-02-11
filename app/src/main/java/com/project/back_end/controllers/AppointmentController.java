@@ -1,6 +1,5 @@
 package com.project.back_end.controllers;
 
-import com.project.back_end.DTO.AppointmentDTO;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.services.AppointmentService;
 import com.project.back_end.services.Service;
@@ -45,7 +44,7 @@ public class AppointmentController {
         try {
             LocalDateTime day = LocalDateTime.parse(date);
 
-            List<Appointment> appointments = appointmentService.getAppointments(
+            List<Appointment> appointments = appointmentService.getAppointment(
                 1L,
                 day,
                 patientName
@@ -66,7 +65,7 @@ public class AppointmentController {
 
     @PostMapping("/book/{token}")
     public ResponseEntity<Map<String, Object>> bookAppointment(
-        @RequestBody AppointmentDTO appointmentDTO,
+        @RequestBody Appointment appointment,
         @PathVariable String token
     ) {
         Map<String, Object> response = new HashMap<>();
@@ -81,7 +80,7 @@ public class AppointmentController {
         }
 
         try {
-            int result = appointmentService.bookAppointment(appointmentDTO);
+            int result = appointmentService.bookAppointment(appointment);
 
             if (result == 1) {
                 response.put("status", "success");
@@ -104,7 +103,7 @@ public class AppointmentController {
 
     @PutMapping("/update/{token}")
     public ResponseEntity<Map<String, Object>> updateAppointment(
-        @RequestBody AppointmentDTO appointmentDTO,
+        @RequestBody Appointment appointment,
         @PathVariable String token
     ) {
         Map<String, Object> response = new HashMap<>();
@@ -119,11 +118,7 @@ public class AppointmentController {
         }
 
         try {
-            String result = appointmentService.updateAppointment(
-                appointmentDTO.getId(),
-                appointmentDTO,
-                1L
-            );
+            String result = appointmentService.updateAppointment(appointment);
 
             if (result.contains("successfully")) {
                 response.put("status", "success");

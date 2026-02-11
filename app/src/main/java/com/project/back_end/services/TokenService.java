@@ -1,15 +1,9 @@
 package com.project.back_end.services;
 
-import com.project.back_end.repositories.AdminRepository;
-import com.project.back_end.repositories.DoctorRepository;
-import com.project.back_end.repositories.PatientRepository;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
-import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -17,26 +11,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class TokenService {
 
-    private final AdminRepository adminRepository;
-    private final DoctorRepository doctorRepository;
-    private final PatientRepository patientRepository;
+    private final Service service;
 
     @Value("${jwt.secret}")
     private String secret;
 
     @Autowired
-    public TokenService(
-        AdminRepository adminRepository,
-        DoctorRepository doctorRepository,
-        PatientRepository patientRepository
-    ) {
-        this.adminRepository = adminRepository;
-        this.doctorRepository = doctorRepository;
-        this.patientRepository = patientRepository;
-    }
-
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+    public TokenService(Service service) {
+        this.service = service;
     }
 
     public String generateToken(String email) {
@@ -44,48 +26,26 @@ public class TokenService {
         Date expiryDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
         return Jwts.builder()
-            .setSubject(email)
-            .setIssuedAt(new Date())
-            .setExpiration(expiryDate)
-            .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+            .subject(email)
+            .issuedAt(new Date())
+            .expiration(expiryDate)
+            .signWith(getSigningKey())
             .compact();
     }
 
-    public String extractEmail(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    public <T> T extractClaim(
-        String token,
-        Function<Claims, T> claimsResolver
-    ) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-    }
-
-    public boolean validateToken(String token, String role) {
+    public String extractIdentifier(String token) {
         try {
-            String email = extractEmail(token);
-            switch (role.toLowerCase()) {
-                case "admin":
-                    return adminRepository.findByEmail(email) != null;
-                case "doctor":
-                    return doctorRepository.findByEmail(email) != null;
-                case "patient":
-                    return patientRepository.findByEmail(email) != null;
-                default:
-                    return false;
-            }
+            return "TODO";
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException("Invalid JWT token", e);
         }
+    }
+
+    public boolean validateToken(String token, String user) {
+        return service.validateToken(token, user);
+    }
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 }

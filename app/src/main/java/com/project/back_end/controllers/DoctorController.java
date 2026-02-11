@@ -1,9 +1,11 @@
 package com.project.back_end.controllers;
 
-import com.project.back_end.dtos.Doctor;
-import com.project.back_end.dtos.Login;
+import com.project.back_end.models.Doctor;
 import com.project.back_end.services.DoctorService;
 import com.project.back_end.services.Service;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,18 +36,17 @@ public class DoctorController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean isAvailable = doctorService.getDoctorAvailability(
-            doctorId,
-            date
-        );
-        return ResponseEntity.ok(Map.of("available", isAvailable));
+        LocalDate localDate = LocalDate.parse(date);
+
+        List<String> available = new ArrayList<>();
+
+        doctorService.getDoctorAvailability(doctorId, localDate);
+        return ResponseEntity.ok(Map.of("available", available));
     }
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDoctor() {
-        return ResponseEntity.ok(
-            Map.of("doctors", doctorService.getAllDoctors())
-        );
+        return ResponseEntity.ok(Map.of("doctors", doctorService.getDoctors()));
     }
 
     @PostMapping("/register/{token}")
@@ -65,13 +66,6 @@ public class DoctorController {
         return ResponseEntity.ok(
             Map.of("message", "Doctor registered successfully")
         );
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> doctorLogin(
-        @RequestBody Login login
-    ) {
-        return ResponseEntity.ok(doctorService.doctorLogin(login));
     }
 
     @PutMapping("/update/{token}")
@@ -121,7 +115,11 @@ public class DoctorController {
         return ResponseEntity.ok(
             Map.of(
                 "doctors",
-                sharedService.filterDoctors(name, time, speciality)
+                doctorService.filterDoctorsByNameSpecilityandTime(
+                    name,
+                    time,
+                    speciality
+                )
             )
         );
     }

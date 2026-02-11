@@ -1,16 +1,15 @@
 package com.project.back_end.services;
 
-import com.project.back_end.model.Admin;
-import com.project.back_end.model.Doctor;
-import com.project.back_end.model.Patient;
+import com.project.back_end.models.Admin;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.models.Patient;
 import com.project.back_end.repo.AdminRepository;
 import com.project.back_end.repo.DoctorRepository;
 import com.project.back_end.repo.PatientRepository;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-@Service
 public class Service {
 
     private final TokenService tokenService;
@@ -49,7 +48,7 @@ public class Service {
         try {
             Admin admin = adminRepository.findByUsername(username);
             if (admin != null && admin.getPassword().equals(password)) {
-                return tokenService.generateToken(username, "admin");
+                return tokenService.generateToken(username);
             } else {
                 return "Invalid username or password";
             }
@@ -101,7 +100,7 @@ public class Service {
 
             List<String> availableTimes = doctorService.getDoctorAvailability(
                 doctorId,
-                java.time.LocalDateTime.parse(date + "T00:00")
+                LocalDate.parse(date)
             );
 
             for (String availableTime : availableTimes) {
@@ -117,12 +116,10 @@ public class Service {
 
     public boolean validatePatient(String email, String phone) {
         try {
-            Patient existingPatient = patientRepository.findByEmail(email);
-            if (existingPatient != null) {
-                return false;
-            }
-
-            existingPatient = patientRepository.findByPhone(phone);
+            Patient existingPatient = patientRepository.findByEmailOrPhone(
+                email,
+                phone
+            );
             if (existingPatient != null) {
                 return false;
             }
@@ -137,7 +134,7 @@ public class Service {
         try {
             Patient patient = patientRepository.findByEmail(email);
             if (patient != null && patient.getPassword().equals(password)) {
-                return tokenService.generateToken(email, "patient");
+                return tokenService.generateToken(email);
             } else {
                 return "Invalid email or password";
             }
@@ -152,9 +149,9 @@ public class Service {
         String token
     ) {
         try {
-            String email = tokenService.extractEmail(token);
-            return patientService.filterPatientAppointments(
-                email,
+            Patient patient = patientService.getPatientDetails(token);
+            return patientService.filterByDoctorAndCondition(
+                patient.getId(),
                 condition,
                 doctorName
             );

@@ -1,6 +1,6 @@
 package com.project.back_end.repo;
 
-import com.project.back_end.model.Appointment;
+import com.project.back_end.models.Appointment;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,9 +56,4 @@ public interface AppointmentRepository
         @Param("patientId") Long patientId,
         @Param("status") int status
     );
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE Appointment a SET a.status = :status WHERE a.id = :id")
-    void updateStatus(@Param("status") int status, @Param("id") long id);
 }

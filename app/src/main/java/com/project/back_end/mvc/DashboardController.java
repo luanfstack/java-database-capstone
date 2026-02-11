@@ -24,7 +24,7 @@ public class DashboardController {
     ) {
         var result = sharedService.validateToken(token, "admin");
 
-        if (result.getStatusCode().isError()) {
+        if (result) {
             redirectAttributes.addFlashAttribute(
                 "error",
                 "Invalid admin token"
@@ -42,7 +42,7 @@ public class DashboardController {
     ) {
         var result = sharedService.validateToken(token, "doctor");
 
-        if (result.getStatusCode().isError()) {
+        if (result) {
             redirectAttributes.addFlashAttribute(
                 "error",
                 "Invalid doctor token"

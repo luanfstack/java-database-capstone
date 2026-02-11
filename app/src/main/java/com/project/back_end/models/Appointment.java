@@ -1,10 +1,10 @@
 package com.project.back_end.models;
 
-import javax.persistence.*;
-import javax.validation.constraints.Future;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -32,10 +32,14 @@ public class Appointment {
     @NotNull
     private int status;
 
-    public Appointment() {
-    }
+    public Appointment() {}
 
-    public Appointment(Doctor doctor, Patient patient, LocalDateTime appointmentTime, int status) {
+    public Appointment(
+        Doctor doctor,
+        Patient patient,
+        LocalDateTime appointmentTime,
+        int status
+    ) {
         this.doctor = doctor;
         this.patient = patient;
         this.appointmentTime = appointmentTime;

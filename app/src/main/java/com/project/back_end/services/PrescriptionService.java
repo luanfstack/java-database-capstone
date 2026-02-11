@@ -1,11 +1,12 @@
 package com.project.back_end.services;
 
-import com.project.back_end.model.Prescription;
+import com.project.back_end.models.Prescription;
 import com.project.back_end.repo.PrescriptionRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -54,7 +55,9 @@ public class PrescriptionService {
         }
     }
 
-    public Map<String, Object> getPrescription(Long appointmentId) {
+    public ResponseEntity<Map<String, Object>> getPrescription(
+        Long appointmentId
+    ) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -62,24 +65,13 @@ public class PrescriptionService {
                 prescriptionRepository.findByAppointmentId(appointmentId);
 
             if (prescriptions.isEmpty()) {
-                response.put("status", 404);
-                response.put(
-                    "message",
-                    "No prescription found for this appointment"
-                );
-                return response;
+                return ResponseEntity.notFound().build();
             }
 
-            response.put("status", 200);
-            response.put("prescription", prescriptions);
-            return response;
+            // TODO
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("status", 500);
-            response.put(
-                "message",
-                "Error fetching prescription: " + e.getMessage()
-            );
-            return response;
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

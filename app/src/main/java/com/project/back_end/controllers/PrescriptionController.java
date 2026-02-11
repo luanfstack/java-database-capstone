@@ -1,7 +1,6 @@
 package com.project.back_end.controllers;
 
-import com.project.back_end.dtos.Prescription;
-import com.project.back_end.services.AppointmentService;
+import com.project.back_end.models.Prescription;
 import com.project.back_end.services.PrescriptionService;
 import com.project.back_end.services.Service;
 import java.util.Map;
@@ -20,9 +19,6 @@ public class PrescriptionController {
     @Autowired
     private Service sharedService;
 
-    @Autowired
-    private AppointmentService appointmentService;
-
     @Value("${api.path}")
     private String apiPath;
 
@@ -35,18 +31,13 @@ public class PrescriptionController {
             return ResponseEntity.badRequest().build();
         }
 
-        appointmentService.updateAppointmentStatus(
-            prescription.getAppointmentId(),
-            "prescribed"
-        );
-
         try {
             prescriptionService.savePrescription(prescription);
             return ResponseEntity.ok(
                 Map.of("message", "Prescription saved successfully")
             );
         } catch (Exception e) {
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -60,13 +51,11 @@ public class PrescriptionController {
         }
 
         try {
-            Prescription prescription =
-                prescriptionService.getPrescriptionByAppointmentId(
-                    appointmentId
-                );
-            return ResponseEntity.ok(Map.of("prescription", prescription));
+            ResponseEntity<Map<String, Object>> prescription =
+                prescriptionService.getPrescription(appointmentId);
+            return prescription;
         } catch (Exception e) {
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

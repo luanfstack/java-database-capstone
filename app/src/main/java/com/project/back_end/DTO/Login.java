@@ -2,16 +2,16 @@ package com.project.back_end.DTO;
 
 public class Login {
 
-    private String email;
+    private String identifier;
 
     private String password;
 
-    public String getEmail() {
-        return email;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setIdentifier(String email) {
+        this.identifier = email;
     }
 
     public String getPassword() {

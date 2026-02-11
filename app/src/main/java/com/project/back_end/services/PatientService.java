@@ -1,11 +1,10 @@
 package com.project.back_end.services;
 
-import com.project.back_end.dto.AppointmentDTO;
+import com.project.back_end.DTO.AppointmentDTO;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.models.Patient;
-import com.project.back_end.repositories.AppointmentRepository;
-import com.project.back_end.repositories.PatientRepository;
-import com.project.back_end.services.TokenService;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.PatientRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -74,15 +73,17 @@ public class PatientService {
             List<Appointment> appointments;
 
             if ("future".equalsIgnoreCase(condition)) {
-                appointments = appointmentRepository.findByPatientIdAndStatus(
-                    patientId,
-                    0
-                );
+                appointments =
+                    appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(
+                        patientId,
+                        0
+                    );
             } else if ("past".equalsIgnoreCase(condition)) {
-                appointments = appointmentRepository.findByPatientIdAndStatus(
-                    patientId,
-                    1
-                );
+                appointments =
+                    appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(
+                        patientId,
+                        1
+                    );
             } else {
                 logger.warning("Invalid condition provided: " + condition);
                 return new ArrayList<>();
@@ -109,9 +110,9 @@ public class PatientService {
     ) {
         try {
             List<Appointment> appointments =
-                appointmentRepository.findByPatientIdAndDoctorName(
-                    patientId,
-                    doctorName
+                appointmentRepository.filterByDoctorNameAndPatientId(
+                    doctorName,
+                    patientId
                 );
             List<AppointmentDTO> appointmentDTOs = new ArrayList<>();
 
@@ -139,16 +140,16 @@ public class PatientService {
 
             if ("future".equalsIgnoreCase(condition)) {
                 appointments =
-                    appointmentRepository.findByPatientIdDoctorNameAndStatus(
-                        patientId,
+                    appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(
                         doctorName,
+                        patientId,
                         0
                     );
             } else if ("past".equalsIgnoreCase(condition)) {
                 appointments =
-                    appointmentRepository.findByPatientIdDoctorNameAndStatus(
-                        patientId,
+                    appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(
                         doctorName,
+                        patientId,
                         1
                     );
             } else {
@@ -173,7 +174,7 @@ public class PatientService {
 
     public Patient getPatientDetails(String token) {
         try {
-            String email = tokenService.extractEmailFromToken(token);
+            String email = tokenService.extractIdentifier(token);
             return patientRepository.findByEmail(email);
         } catch (Exception e) {
             logger.severe(

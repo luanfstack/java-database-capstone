@@ -1,9 +1,6 @@
 package com.project.back_end.services;
 
-import com.project.back_end.DTO.AppointmentDTO;
-import com.project.back_end.model.Appointment;
-import com.project.back_end.model.Doctor;
-import com.project.back_end.model.Patient;
+import com.project.back_end.models.Appointment;
 import com.project.back_end.repo.AppointmentRepository;
 import com.project.back_end.repo.DoctorRepository;
 import com.project.back_end.repo.PatientRepository;
@@ -17,29 +14,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final PatientRepository patientRepository;
-    private final DoctorRepository doctorRepository;
 
     @Autowired
     public AppointmentService(
         AppointmentRepository appointmentRepository,
         PatientRepository patientRepository,
-        DoctorRepository doctorRepository
+        DoctorRepository doctorRepository,
+        TokenService tokenService
     ) {
         this.appointmentRepository = appointmentRepository;
-        this.patientRepository = patientRepository;
-        this.doctorRepository = doctorRepository;
     }
 
     @Transactional
-    public int bookAppointment(AppointmentDTO appointmentDTO) {
+    public int bookAppointment(Appointment appointment) {
         try {
-            Appointment appointment = new Appointment();
-            appointment.setDoctorId(appointmentDTO.getDoctorId());
-            appointment.setPatientId(appointmentDTO.getPatientId());
-            appointment.setAppointmentTime(appointmentDTO.getAppointmentTime());
-            appointment.setStatus(appointmentDTO.getStatus());
-
             Appointment savedAppointment = appointmentRepository.save(
                 appointment
             );
@@ -50,45 +38,22 @@ public class AppointmentService {
     }
 
     @Transactional
-    public String updateAppointment(
-        Long appointmentId,
-        AppointmentDTO appointmentDTO,
-        Long patientId
-    ) {
+    public String updateAppointment(Appointment appointment) {
         try {
             Appointment existingAppointment = appointmentRepository
-                .findById(appointmentId)
+                .findById(appointment.getId())
                 .orElse(null);
 
             if (existingAppointment == null) {
                 return "Appointment not found";
             }
 
-            if (!existingAppointment.getPatientId().equals(patientId)) {
-                return "Unauthorized: Patient ID does not match";
-            }
-
-            List<Appointment> conflictingAppointments =
-                appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(
-                    appointmentDTO.getDoctorId(),
-                    appointmentDTO.getAppointmentTime().minusHours(1),
-                    appointmentDTO.getAppointmentTime().plusHours(1)
-                );
-
-            conflictingAppointments.removeIf(a ->
-                a.getId().equals(appointmentId)
-            );
-
-            if (!conflictingAppointments.isEmpty()) {
-                return "Doctor is not available at the specified time";
-            }
-
-            existingAppointment.setDoctorId(appointmentDTO.getDoctorId());
-            existingAppointment.setPatientId(appointmentDTO.getPatientId());
+            existingAppointment.setDoctor(appointment.getDoctor());
+            existingAppointment.setPatient(appointment.getPatient());
             existingAppointment.setAppointmentTime(
-                appointmentDTO.getAppointmentTime()
+                appointment.getAppointmentTime()
             );
-            existingAppointment.setStatus(appointmentDTO.getStatus());
+            existingAppointment.setStatus(appointment.getStatus());
 
             appointmentRepository.save(existingAppointment);
             return "Appointment updated successfully";
@@ -108,7 +73,7 @@ public class AppointmentService {
                 return "Appointment not found";
             }
 
-            if (!appointment.getPatientId().equals(patientId)) {
+            if (!appointment.getPatient().getId().equals(patientId)) {
                 return "Unauthorized: Patient ID does not match";
             }
 
@@ -120,7 +85,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public List<Appointment> getAppointments(
+    public List<Appointment> getAppointment(
         Long doctorId,
         LocalDateTime day,
         String patientName
@@ -139,10 +104,5 @@ public class AppointmentService {
                 day.with(LocalDateTime.MAX.toLocalDate())
             );
         }
-    }
-
-    @Transactional
-    public void changeStatus(Long appointmentId, int status) {
-        appointmentRepository.updateStatus(status, appointmentId);
     }
 }
