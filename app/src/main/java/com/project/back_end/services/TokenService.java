@@ -4,22 +4,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TokenService {
 
-    private final Service service;
-
     @Value("${jwt.secret}")
     private String secret;
-
-    @Autowired
-    public TokenService(Service service) {
-        this.service = service;
-    }
 
     public String generateToken(String email) {
         Date now = new Date();
@@ -47,7 +39,12 @@ public class TokenService {
     }
 
     public boolean validateToken(String token, String user) {
-        return service.validateToken(token, user);
+        try {
+            String identifier = extractIdentifier(token);
+            return identifier != null && identifier.equals(user);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private Key getSigningKey() {
